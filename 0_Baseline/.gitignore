@@ -1,0 +1,5 @@
+**/.DS_Store
+~README.md
+task1/format_checker/__pycache__/
+task1/scorer/__pycache__/
+.idea/
