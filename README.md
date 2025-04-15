@@ -3,6 +3,9 @@ Advanced Information Retrieval SS2025
 
 
 
-0_Baseline -> given implementation bm25
-1_Traditional -> tf-idf + cosine similiarity sklearn 
-2_
+1_Baseline TD-IDF - Elisabeth
+2_NLP rep - Luc, Marco
+3_NLP re-ranking - Theresa, khan 
+
+28.04 - First Running version deadline
+29/30.04 - Meeting for next steps
