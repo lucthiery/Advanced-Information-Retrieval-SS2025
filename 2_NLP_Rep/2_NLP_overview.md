@@ -32,6 +32,8 @@ Next steps:
 - Try models with high token limits
 - Vary what is embedded: ie. full abstact, title + abstract, authors + title + abstract, etc.
 - Analysis of failures to retrieve -> Why is the paper not identified or why is it ranked lower than others
+- Implement reranking
+- Try hybrid approaches, vector search + bm25 for example
 
 
 
