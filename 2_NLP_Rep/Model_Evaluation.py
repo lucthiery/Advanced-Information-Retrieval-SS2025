@@ -17,6 +17,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 print("Using device:", device, end="\n\n")
 
+#1 "all-MiniLM-L6-v2"
+#2 "granite-embedding-278m-multilingual"
+#3 "intfloat/multilingual-e5-small"
+
 model_name = sys.argv[1] if len(sys.argv) > 1 else "all-MiniLM-L6-v2"
 
 print("Using model:", model_name, end="\n\n")
