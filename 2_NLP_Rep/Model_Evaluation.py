@@ -10,24 +10,7 @@ import pickle as pkl
 from collections import defaultdict
 import sys
 import os
-
-CHUNK_SIZE = 256
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-print("Using device:", device, end="\n\n")
-
-#1 "all-MiniLM-L6-v2"
-#2 "granite-embedding-278m-multilingual"
-#3 "intfloat/multilingual-e5-small"
-
-model_name = sys.argv[1] if len(sys.argv) > 1 else "all-MiniLM-L6-v2"
-
-print("Using model:", model_name, end="\n\n")
-
-model = SentenceTransformer(model_name, device=device)
-
-model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+from typing import Tuple
 
 
 def embed_texts(texts, model, batch_size=32):
@@ -105,18 +88,6 @@ def get_or_create_chunks():
     return paper_chunks
 
 
-paper_chunks = get_or_create_chunks()
-paper_dict = {}
-for entry in paper_chunks:
-    uid = entry["cord_uid"]
-    paper_dict.setdefault(uid, []).append(entry["text"])
-
-
-df = pd.read_csv("../X_Data/subtask4b_query_tweets_train.tsv", sep="\t")
-train_df = df[["tweet_text", "cord_uid"]].dropna()
-dev_df = pd.read_csv("../X_Data/subtask4b_query_tweets_dev.tsv", sep="\t")
-
-
 def get_or_create_paper_embeddings():
     if os.path.exists(f"./paper_embeddings_{model_name}.pt"):
         print("Loading existing paper embeddings\n")
@@ -152,12 +123,11 @@ def get_or_create_tweet_embeddings():
     return tweet_embeddings
 
 
-paper_embeddings = get_or_create_paper_embeddings()
-tweet_embeddings = get_or_create_tweet_embeddings()
-
-
 # Calculate cosine similarity and rank the papers, each paper appears at most once
-def calculate_similarity(tweet_embeddings, paper_embeddings):
+def calculate_similarity(
+    tweet_embeddings: list[Tuple[str, str, str, any]],
+    paper_embeddings: list[Tuple[str, str, any]],
+):
     similarities = []
     for idx, (id, uid, _, tweet_embedding) in tqdm(
         enumerate(tweet_embeddings), desc="Tweets"
@@ -182,54 +152,82 @@ def calculate_similarity(tweet_embeddings, paper_embeddings):
             }
         )
 
-    torch.save(similarities, f"./similarities_{model_name}.pt")
-
     return similarities
 
 
-if os.path.exists(f"./similarities_{model_name}.pt"):
-    print("\nLoading existing similarities\n")
-    results = torch.load(f"./similarities_{model_name}.pt")
-else:
-    # Calculate cosine similarity and rank the papers
-    print("\nCalculating similarities\n")
-    results = calculate_similarity(tweet_embeddings, paper_embeddings)
+if __name__ == "__main__":
+    CHUNK_SIZE = 256
 
-print(results[:5])
-mrr5 = calculate_mrr5(results)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-print("MRR5:", mrr5)
+    print("Using device:", device, end="\n\n")
 
-with open(f"results_{model_name}.json", "w") as f:
-    json.dump(results, f)
+    model_name = sys.argv[1] if len(sys.argv) > 1 else "all-MiniLM-L6-v2"
 
-# Open the results csv as dataframe and write the mrr5
-if not os.path.exists("results.csv"):
-    df = pd.DataFrame(columns=["model", "mrr5"])
-else:
-    df = pd.read_csv("results.csv", usecols=["model", "mrr5"])
+    print("Using model:", model_name, end="\n\n")
 
-df = pd.concat(
-    [
-        df,
-        pd.DataFrame.from_dict(
+    model = SentenceTransformer(model_name, device=device)
+
+    model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+
+    paper_chunks = get_or_create_chunks()
+    paper_dict = {}
+    for entry in paper_chunks:
+        uid = entry["cord_uid"]
+        paper_dict.setdefault(uid, []).append(entry["text"])
+
+    df = pd.read_csv("../X_Data/subtask4b_query_tweets_train.tsv", sep="\t")
+    train_df = df[["tweet_text", "cord_uid"]].dropna()
+    dev_df = pd.read_csv("../X_Data/subtask4b_query_tweets_dev.tsv", sep="\t")
+
+    paper_embeddings = get_or_create_paper_embeddings()
+    tweet_embeddings = get_or_create_tweet_embeddings()
+
+    if os.path.exists(f"./similarities_{model_name}.pt"):
+        print("\nLoading existing similarities\n")
+        results = torch.load(f"./similarities_{model_name}.pt")
+    else:
+        # Calculate cosine similarity and rank the papers
+        print("\nCalculating similarities\n")
+        results = calculate_similarity(tweet_embeddings, paper_embeddings)
+
+        torch.save(results, f"./similarities_{model_name}.pt")
+
+    print(results[:5])
+    mrr5 = calculate_mrr5(results)
+
+    print("MRR5:", mrr5)
+
+    with open(f"results_{model_name}.json", "w") as f:
+        json.dump(results, f)
+
+    # Open the results csv as dataframe and write the mrr5
+    if not os.path.exists("results.csv"):
+        df = pd.DataFrame(columns=["model", "mrr5"])
+    else:
+        df = pd.read_csv("results.csv", usecols=["model", "mrr5"])
+
+    df = pd.concat(
+        [
+            df,
+            pd.DataFrame.from_dict(
+                {
+                    "model": [model_name],
+                    "mrr5": [mrr5],
+                },
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    df.to_csv("results.csv", index=False)
+
+    with open(f"submission_{model_name}.json", "w") as f:
+        formatted_results = [
             {
-                "model": [model_name],
-                "mrr5": [mrr5],
-            },
-        ),
-    ],
-    ignore_index=True,
-)
-
-df.to_csv("results.csv", index=False)
-
-with open(f"submission_{model_name}.json", "w") as f:
-    formatted_results = [
-        {
-            "id": result["tweet"],
-            "doc_ids": result["retrieved"],
-        }
-        for result in results
-    ]
-    json.dump(formatted_results, f)
+                "id": result["tweet"],
+                "doc_ids": result["retrieved"],
+            }
+            for result in results
+        ]
+        json.dump(formatted_results, f)
