@@ -4,3 +4,4 @@
 2_Representational/dev_tweet_embeddings.pt
 2_Representational/docs.json
 2_Representational/paper_chunk_embeddings.pt
+2_Representational/longtransformer.ipynb
