@@ -12,7 +12,8 @@
 #### Hybrid
 
 - Same approach as basic
-- 
+- Uses postgres full text search in addition to vector search
+- Cross ranks using Reciprocal Rank Fusion
 
 
 | MODEL                               | MRR@5  | Tokenlimit | comment                          |
@@ -29,6 +30,8 @@ Furhter models:
 Next steps:
 
 - Try models with high token limits
+- Vary what is embedded: ie. full abstact, title + abstract, authors + title + abstract, etc.
+- Analysis of failures to retrieve -> Why is the paper not identified or why is it ranked lower than others
 
 
 
