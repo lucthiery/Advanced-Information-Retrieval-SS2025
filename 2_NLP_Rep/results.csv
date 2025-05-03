@@ -1,0 +1,4 @@
+model,mrr5
+ibm-granite_granite-embedding-278m-multilingual,0.581321428571429
+all-MiniLM-L6-v2,0.5297619047619049
+intfloat_multilingual-e5-small,0.5675476190476195
