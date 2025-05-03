@@ -1,0 +1,15 @@
+# jetbrains
+.idea
+
+# python
+.venv
+
+# glove model files
+glove*.txt
+
+# results saved
+*results.json
+
+# query and document collections
+subtask4b_collection_data.pkl
+subtask4b_query_tweets_dev.tsv
