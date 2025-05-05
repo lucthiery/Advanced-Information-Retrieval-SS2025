@@ -16,9 +16,9 @@
 - Cross ranks using Reciprocal Rank Fusion
 
 
-| MODEL                               | MRR@5  | Tokenlimit |File Name     | comment                          |
-|-------------------------------------|--------|------------|--------------|----------------------------------|
-| SBERT                               | 0.5297 | 512        |              | no loss implementation for now   |
+| MODEL                               | MRR@5  | Tokenlimit |File Name     | comment                         |
+|-------------------------------------|--------|------------|--------------|---------------------------------|
+| SBERT                               | 0.5297 | 512        |              |no loss implementation for now   |
 | text-embeddings-3-large             | 0.71   | 8192       |              |API-based, zero-shot             |
 | granite-embedding-278m-multilingual | 0.5813 | 8192       |              |Multilingual, IBM Granite family |
 | intfloat/multilingual-e5-small      | 0.5675 | 512        |              |Multilingual                     |
